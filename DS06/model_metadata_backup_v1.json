@@ -1,0 +1,67 @@
+{
+  "version": "DS06-v1",
+  "source": {
+    "delay": "train_delay_risk__v4.ipynb + DS05_explainability_error_analysis_FINAL_V3(1).ipynb",
+    "win": "train_win_probability_v4.ipynb + DS05_explainability_error_analysis_FINAL_V3(1).ipynb"
+  },
+  "models": {
+    "delay": {
+      "model": "RandomForestClassifier",
+      "artifact": "models/delay_risk_rf.joblib",
+      "features": [
+        "contract_value",
+        "planned_duration_days",
+        "n_disciplines_known_at_snapshot",
+        "n_open_disciplines_at_snapshot",
+        "total_workload_pct",
+        "pct_staff_overloaded_at_snapshot",
+        "n_open_overdue_tasks_at_snapshot",
+        "pm_historic_late_rate",
+        "customer_historic_late_rate",
+        "project_type",
+        "discipline"
+      ],
+      "categorical_features": [
+        "project_type",
+        "discipline"
+      ],
+      "probability": "P(label=1) = P(delay)"
+    },
+    "win": {
+      "model": "CatBoostClassifier",
+      "artifact": "models/win_probability_catboost.cbm",
+      "features": [
+        "lead_source",
+        "customer_segment",
+        "territory",
+        "opportunity_amount",
+        "days_lead_to_opp",
+        "discount_rate_at_first_quotation"
+      ],
+      "categorical_features": [
+        "lead_source",
+        "customer_segment",
+        "territory"
+      ],
+      "probability": "P(label=1) = P(WON)"
+    }
+  },
+  "important_constraints": [
+    "Do not use custom_win_probability or custom_win_band as model inputs.",
+    "Do not add new features in DS-06.",
+    "Do not retune the models in DS-06.",
+    "Band thresholds are configurable and must be confirmed against the ERPNext business requirement before UAT."
+  ],
+  "erpnext_output_fields": {
+    "delay": {
+      "probability": "custom_delay_probability",
+      "band": "custom_delay_band",
+      "verification_status": "NEEDS_ERPNext_FIELD_CHECK"
+    },
+    "win": {
+      "probability": "custom_win_probability",
+      "band": "custom_win_band",
+      "verification_status": "probability/band are documented as reverse-scoring outputs; verify live field metadata before UAT"
+    }
+  }
+}

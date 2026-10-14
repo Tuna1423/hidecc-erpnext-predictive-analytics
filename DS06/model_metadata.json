@@ -1,0 +1,111 @@
+{
+  "version": "DS06-v2",
+  "source": {
+    "delay": "train_delay_risk__v4.ipynb + DS05_explainability_error_analysis_FINAL_V2.ipynb",
+    "win": "train_win_probability_v4.ipynb + DS05_explainability_error_analysis_FINAL_V2.ipynb"
+  },
+  "models": {
+    "delay": {
+      "model": "RandomForestClassifier",
+      "artifact": "models/delay_risk_rf.joblib",
+      "features": [
+        "contract_value",
+        "planned_duration_days",
+        "n_disciplines_known_at_snapshot",
+        "n_open_disciplines_at_snapshot",
+        "total_workload_pct",
+        "pct_staff_overloaded_at_snapshot",
+        "n_open_overdue_tasks_at_snapshot",
+        "pm_historic_late_rate",
+        "customer_historic_late_rate",
+        "project_type",
+        "discipline"
+      ],
+      "categorical_features": [
+        "project_type",
+        "discipline"
+      ],
+      "probability": "P(label=1) = P(delay)"
+    },
+    "win": {
+      "model": "CatBoostClassifier",
+      "artifact": "models/win_probability_catboost.cbm",
+      "features": [
+        "lead_source",
+        "customer_segment",
+        "territory",
+        "opportunity_amount",
+        "days_lead_to_opp",
+        "discount_rate_at_first_quotation"
+      ],
+      "categorical_features": [
+        "lead_source",
+        "customer_segment",
+        "territory"
+      ],
+      "probability": "P(label=1) = P(WON)",
+      "requires_at_least_one_quotation": true
+    }
+  },
+  "scoring": {
+    "delay": {
+      "medium_threshold": 0.40,
+      "high_threshold": 0.70,
+      "bands": {
+        "low": "Thấp",
+        "medium": "Trung bình",
+        "high": "Cao"
+      }
+    },
+    "win": {
+      "medium_threshold": 0.40,
+      "high_threshold": 0.70,
+      "bands": {
+        "low": "Thấp",
+        "medium": "Trung bình",
+        "high": "Cao"
+      }
+    }
+  },
+  "important_constraints": [
+    "Do not use custom_win_probability or custom_win_band as model inputs.",
+    "Do not use custom_delay_risk_score or custom_risk_band as model inputs.",
+    "Do not add new model features in DS-06.",
+    "Do not retune the models in DS-06.",
+    "Win Probability is only applicable to Opportunity records with at least one Quotation.",
+    "Do not create synthetic values to replace missing ERPNext data."
+  ],
+  "erpnext_output_fields": {
+    "delay": {
+      "probability": "custom_delay_risk_score",
+      "band": "custom_risk_band",
+      "verification_status": "VERIFIED_BY_LIVE_UAT"
+    },
+    "win": {
+      "probability": "custom_win_probability",
+      "band": "custom_win_band",
+      "verification_status": "VERIFIED_BY_LIVE_UAT"
+    }
+  },
+  "erpnext_integration": {
+    "authentication": "Authorization: token API_KEY:API_SECRET",
+    "delay_whitelisted_method": "hidecc_consulting.api.set_project_delay_score",
+    "win_whitelisted_method": "hidecc_consulting.api.set_opportunity_win_score",
+    "credentials_source": ".env"
+  },
+  "uat": {
+    "delay": {
+      "project": "PROJ-0001",
+      "probability": 0.7314515894692988,
+      "band": "Cao",
+      "write_verified": true
+    },
+    "win": {
+      "opportunity": "CRM-OPP-2026-00002",
+      "probability": 0.324008524322569,
+      "band": "Thấp",
+      "write_verified": true
+    }
+  },
+  "evaluation_note": "Model performance metrics are reported in DS-05. DS-06 is an inference, scoring, integration, and dashboard layer and does not retrain or retune the models."
+}
